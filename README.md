@@ -1,4 +1,4 @@
-# LIA-Sampler: An SMT(LIA) sampling tool based on local search
+# LIA-Sampler: A Tool for High-Diversity Sampling in Satisfiability Modulo Linear Integer Arithmetic
 
 ## 1. Project Structure
 In LIA-Sampler, three sampling modes have been implemented, namely *LS-MODE*, *CDCL-MODE*, and *HYBRID-MODE*. The framework for each mode is as follows:
