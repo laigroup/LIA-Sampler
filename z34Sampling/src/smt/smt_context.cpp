@@ -1840,7 +1840,7 @@ bool context::decide() {
             }
         }
     }
-    // is_pos = (m_random() % 2 == 0); // my change
+    is_pos = (m_random() % 2 == 0); // my change
     if (!is_pos) l.neg();
     TRACE("decide", tout << "case split " << l << "\n"
                          << "activity: " << get_activity(var) << "\n";);

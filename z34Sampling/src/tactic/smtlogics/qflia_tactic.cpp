@@ -325,44 +325,44 @@ tactic* mk_qflia_tactic(ast_manager& m, params_ref const& p) {
     //                 sampling_tactic)),
     //     main_p);
 
-    // tactic* st = using_params( // z3
-    //     and_then(
-    //         mk_preamble_tactic(m),
-    //         using_params(mk_simplify_tactic(m), lhs_p),
-    //         or_else(mk_ilp_model_finder_tactic(m),
-    //                 mk_pb_tactic(m),
-    //                 and_then(fail_if_not(mk_is_quasi_pb_probe()),
-    //                          using_params(mk_lia2sat_tactic(m), quasi_pb_p),
-    //                          mk_fail_if_undecided_tactic()),
-    //                 mk_bounded_tactic(m),
-    //                 mk_smt_tactic(m))),
-    //     main_p);
+    tactic* st = using_params( // z3
+        and_then(
+            mk_preamble_tactic(m),
+            using_params(mk_simplify_tactic(m), lhs_p),
+            or_else(mk_ilp_model_finder_tactic(m),
+                    mk_pb_tactic(m),
+                    and_then(fail_if_not(mk_is_quasi_pb_probe()),
+                             using_params(mk_lia2sat_tactic(m), quasi_pb_p),
+                             mk_fail_if_undecided_tactic()),
+                    mk_bounded_tactic(m),
+                    mk_smt_tactic(m))),
+        main_p);
 
-    tactic* st;
-    if (first_sampling) {
-        std::cout << "sampling tactic\n";
-        st = using_params(  // ls sampling
-            and_then(
-                mk_preamble_tactic(m),
-                using_params(mk_simplify_tactic(m), lhs_p),
-                sampling_tactic),
-            main_p);
-            first_sampling = false;
-    } else {
-        std::cout << "z3 tactic\n";
-        st = using_params( // z3
-            and_then(
-                mk_preamble_tactic(m),
-                using_params(mk_simplify_tactic(m), lhs_p),
-                or_else(mk_ilp_model_finder_tactic(m),
-                        mk_pb_tactic(m),
-                        and_then(fail_if_not(mk_is_quasi_pb_probe()),
-                                 using_params(mk_lia2sat_tactic(m), quasi_pb_p),
-                                 mk_fail_if_undecided_tactic()),
-                        mk_bounded_tactic(m),
-                        mk_smt_tactic(m))),
-            main_p);
-    }
+    // tactic* st;
+    // if (first_sampling) {
+    //     std::cout << "sampling tactic\n";
+    //     st = using_params(  // ls sampling
+    //         and_then(
+    //             mk_preamble_tactic(m),
+    //             using_params(mk_simplify_tactic(m), lhs_p),
+    //             sampling_tactic),
+    //         main_p);
+    //         first_sampling = false;
+    // } else {
+    //     std::cout << "z3 tactic\n";
+    //     st = using_params( // z3
+    //         and_then(
+    //             mk_preamble_tactic(m),
+    //             using_params(mk_simplify_tactic(m), lhs_p),
+    //             or_else(mk_ilp_model_finder_tactic(m),
+    //                     mk_pb_tactic(m),
+    //                     and_then(fail_if_not(mk_is_quasi_pb_probe()),
+    //                              using_params(mk_lia2sat_tactic(m), quasi_pb_p),
+    //                              mk_fail_if_undecided_tactic()),
+    //                     mk_bounded_tactic(m),
+    //                     mk_smt_tactic(m))),
+    //         main_p);
+    // }
 
     st->updt_params(p);
     return st;

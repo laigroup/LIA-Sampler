@@ -121,25 +121,25 @@ class act_case_split_queue : public case_split_queue {
     void next_case_split(bool_var &next, lbool &phase) override {
         phase = l_undef;
 
-        if (m_context.get_random_value() < static_cast<int>(m_params.m_random_var_freq * random_gen::max_value())) {
-            next = m_context.get_random_value() % m_context.get_num_b_internalized();
-            TRACE("random_split", tout << "next: " << next << " get_assignment(next): " << m_context.get_assignment(next) << "\n";);
-            if (m_context.get_assignment(next) == l_undef)
-                return;
-        }
-
-        /* my change */
-        // std::random_device rd;
-        // std::mt19937 gen(123);
-        // std::uniform_int_distribution<> distrib(0, m_context.get_num_b_internalized());
-        // unsigned random_number = distrib(gen);
-
-        // if (random_number < static_cast<unsigned>(m_params.m_random_var_freq * random_gen::max_value())) {
-        //     next = random_number % m_context.get_num_b_internalized();
+        // if (m_context.get_random_value() < static_cast<int>(m_params.m_random_var_freq * random_gen::max_value())) {
+        //     next = m_context.get_random_value() % m_context.get_num_b_internalized();
         //     TRACE("random_split", tout << "next: " << next << " get_assignment(next): " << m_context.get_assignment(next) << "\n";);
         //     if (m_context.get_assignment(next) == l_undef)
         //         return;
         // }
+
+        /* my change */
+        std::random_device rd;
+        std::mt19937 gen(123);
+        std::uniform_int_distribution<> distrib(0, m_context.get_num_b_internalized());
+        unsigned random_number = distrib(gen);
+
+        if (random_number < static_cast<unsigned>(m_params.m_random_var_freq * random_gen::max_value())) {
+            next = random_number % m_context.get_num_b_internalized();
+            TRACE("random_split", tout << "next: " << next << " get_assignment(next): " << m_context.get_assignment(next) << "\n";);
+            if (m_context.get_assignment(next) == l_undef)
+                return;
+        }
 
         /* end change */
         while (!m_queue.empty()) {

@@ -1,7 +1,14 @@
 # LIA-Sampler: An SMT(LIA) sampling tool based on local search
 
-## 1、Project Structure
-![alt text](pics/structure.png)
+## 1. Project Structure
+In LIA-Sampler, three sampling modes have been implemented, namely *LS-MODE*, *CDCL-MODE*, and *HYBRID-MODE*. The framework for each mode is as follows:
+
+### 1.1. LS-MODE
+![alt text](pics/ls_mode.png)
+### 1.2. CDCL-MODE
+![alt text](pics/cdcl_mode.png)
+### 1.3. HYBRID-MODE
+![alt text](pics/hybrid_mode.png)
 
 Here's an overview of the key components in the project structure:
 ```bash
@@ -94,27 +101,30 @@ make
 ## 3. Usage
 
 Run a test case to see how LIA-Sampler works:
-
 ```bash
-./liasampler -i LIA_bench/LIA_convert_query-1164.smt2 -o samples -n 10 -t 900 -s 123
+./liasampler -i LIA_bench/LIA_convert_query-1164.smt2 -o samples -n 10 -t 900 -s 123 -m hybrid
 ```
 
 ## 4. Command Line Options
 ```bash
 Usage: ./liasampler [options]
 Options:
-  -i <smt file>        Specify the path to the input file
-  -o <output dir>      Specify the output directory path
-  -n <num samples>     Specify the number of samples
-  -t <time limit>      Set the time limit (in seconds)
-  -s <seed>            Set the random seed
-  -h                   Display this help message
+  -i <smt file>               Specify the path to the input file
+  -o <output dir>             Specify the output directory path
+  -n <num samples>            Specify the number of samples
+  -t <time limit>             Set the time limit (in seconds)
+  -s <seed>                   Set the random seed
+  -m <sampling mode>          Set the sampling mode <ls, cdcl, hybrid>
+  -e <cdcl epoch>             Set CDCL epochs for sampling (Only effective in hybrid mode)
+  -p <fixed var percentage>   Set the percentage of fixed variables (Only effective in hybrid mode)
+  -h                          Display this help message
 ```
 
 ## 5. Contributors
-The following researchers have contributed to this project:
-* Junjie Li (jjli23@mails.jlu.edu.cn)
+The following researchers have contributed to this project (sorted alphabetically by last name):
 * Yong Lai (laiy@jlu.edu.cn)
+* Junjie Li (jjli23@mails.jlu.edu.cn)
+* Chuan Luo (chuanluo@buaa.edu.cn)
 
 ## 6. Getting Help
 For support or questions, please contact the project maintainers at jjli23@mails.jlu.edu.cn or open an issue in our GitHub repository's issue tracker.

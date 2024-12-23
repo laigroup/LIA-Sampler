@@ -5,18 +5,25 @@ struct my_args {
     std::string outputDir{getcwd(NULL, 0)};
     size_t maxNumSamples = 1000;
     double maxTimeLimit = 3600.0;
+    sampler::SamplingMode mode = sampler::LS;
     int randomSeed = 0;
+
+    size_t cdclEpoch = 1;
+    double fixedVarsPct = 0.5;
 };
 
 void printHelp(const char* programName) {
     std::cout << "Usage: " << programName << " [options]\n";
     std::cout << "Options:\n";
-    std::cout << "  -i <smt file>        Specify the path to the input file\n";
-    std::cout << "  -o <output dir>      Specify the output directory path\n";
-    std::cout << "  -n <num samples>     Specify the number of samples\n";
-    std::cout << "  -t <time limit>      Set the time limit (in seconds)\n";
-    std::cout << "  -s <seed>            Set the random seed\n";
-    std::cout << "  -h                   Display this help message\n";
+    std::cout << "  -i <smt file>               Specify the path to the input file\n";
+    std::cout << "  -o <output dir>             Specify the output directory path\n";
+    std::cout << "  -n <num samples>            Specify the number of samples\n";
+    std::cout << "  -t <time limit>             Set the time limit (in seconds)\n";
+    std::cout << "  -s <seed>                   Set the random seed\n";
+    std::cout << "  -m <sampling mode>          Set the sampling mode <ls, cdcl, hybrid>\n";
+    std::cout << "  -e <cdcl epoch>             Set CDCL epochs for sampling (Only effective in hybrid mode)\n";
+    std::cout << "  -p <fixed var percentage>   Set the percentage of fixed variables (Only effective in hybrid mode)\n";
+    std::cout << "  -h                          Display this help message\n";
 }
 
 bool parseOpt(my_args* argp, int argc, char* argv[]) {
@@ -60,6 +67,39 @@ bool parseOpt(my_args* argp, int argc, char* argv[]) {
                 std::cerr << "Please enter a seed value." << std::endl;
                 return false;
             }
+        } else if (arg == "-m") {
+            if (i + 1 < argc) {
+                ++i;
+                std::string m = argv[i];
+                if (m == "ls" || m == "LS") {
+                    argp->mode = sampler::LS;
+                } else if (m == "cdcl" || m == "CDCL") {
+                    argp->mode = sampler::CDCL;
+                } else if (m == "hybrid" || m == "HYBRID") {
+                    argp->mode = sampler::HYBRID;
+                } else {
+                    std::cerr << "Unknown sampling mode " << m << std::endl;
+                    return false;
+                }
+            } else {
+                std::cerr << "Please select sampling mode." << std::endl;
+                return false;
+            }
+
+        } else if (arg == "-e") {
+            if (i + 1 < argc)
+                argp->randomSeed = atoll(argv[++i]);
+            else {
+                std::cerr << "Please enter CDCL epochs." << std::endl;
+                return false;
+            }
+        } else if (arg == "-p") {
+            if (i + 1 < argc)
+                argp->randomSeed = atof(argv[++i]);
+            else {
+                std::cerr << "Please enter fixed vars percentage." << std::endl;
+                return false;
+            }
         } else {
             std::cerr << "Unknown argument: " << arg << std::endl;
             return false;
@@ -80,12 +120,12 @@ int main(int argc, char* argv[]) {
 
     my_args arg;
     bool parseRes = parseOpt(&arg, argc, argv);
-    if (!parseRes){
+    if (!parseRes) {
         return 1;
     }
 
     z3::context ctx;
-    sampler::LiaSampler mySampler(&ctx, arg.smtFilePath, arg.outputDir, arg.maxNumSamples, arg.maxTimeLimit);
+    sampler::LiaSampler mySampler(&ctx, arg.smtFilePath, arg.outputDir, arg.maxNumSamples, arg.maxTimeLimit, arg.mode, arg.cdclEpoch, arg.fixedVarsPct);
 
     mySampler.sampling();
 
