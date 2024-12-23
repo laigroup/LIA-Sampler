@@ -30,7 +30,6 @@
 #define BUILD_OCCS_CLOSURES
 // #define BIT_GUIDED
 // #define CALC_DIVERSE_SAMPLE
-#define INTERVAL_SAMPLING
 
 // #define DEBUG
 // #define VERBOSE
@@ -63,12 +62,6 @@ const int32_t pos_inf_32 = INT32_MAX;
 const int32_t neg_inf_32 = INT32_MIN;
 const int16_t pos_inf_16 = INT16_MAX;
 const int16_t neg_inf_16 = INT16_MIN;
-
-// struct interval{
-//     __int128_t lower_bound = -max_int;
-//     __int128_t upper_bound = max_int;
-//     __int128_t interval_size;
-// };
 
 struct lit {
     std::vector<int> pos_coff_var_idx;  // index of positive coefficient variables
@@ -153,7 +146,6 @@ class ls_sampler {
     std::vector<int> _bool_var_vec;          // boolean vars index in _resolution_vars
     std::vector<variable> _vars;             // ??
     std::vector<variable> _tmp_vars;         // LIA vars
-    std::vector<variable> _bak_vars;         // 用于暂存每次搜索后的_vars
     // literals
     std::vector<lit> _lits;
     std::vector<int> _bound_lits;   // record the index of bounded lits
@@ -204,7 +196,6 @@ class ls_sampler {
     // map
     std::map<std::string, uint64_t> _name2resolution_var;  // map the name of a resolution variable to its index
     std::map<std::string, uint64_t> _name2var;             // map the name of a variable to its index
-    std::map<std::string, uint64_t> _bak_name2var;
     std::map<std::string, uint64_t> _name2tmp_var;  // map from temporary variable names to their indices
     // cc and tabu
     int CC_mode;                      // controlling the variable selection mode (integer mode or boolean mode)
@@ -235,7 +226,6 @@ class ls_sampler {
     std::vector<__int128_t> _best_solutin;  // optimal solution
     std::vector<__int128_t> _final_solution;
     std::stack<clause> _reconstruct_stack;      // 被归结的子句
-    std::stack<clause> _bak_reconstruct_stack;  // 被归结的子句
     bool is_in_bool_search = false;             // ??
 
     // cost
@@ -331,9 +321,6 @@ class ls_sampler {
 
     // time
     double TimeElapsed_total();
-
-    // util
-    bool compareUncovBitNum(size_t var_idx1, size_t var_idx2);
 
     /* ls_sampling */
     void ls_sampling();

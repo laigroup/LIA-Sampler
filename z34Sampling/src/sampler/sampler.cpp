@@ -286,32 +286,8 @@ void ls_sampler::clear_prev_data() {
     // _unsat_clauses->clear();
     // _contain_bool_unsat_clauses->clear();
     // _sat_clause_with_false_literal->clear();
-    _name2var = _bak_name2var;
     // SASSERT(_vars.size() == _bak_vars.size());
 
-    for (int i = 0; i < _bak_vars.size(); ++i) {
-        _bak_vars[i].s_lower_bound = _vars[i].s_lower_bound;
-        _bak_vars[i].s_upper_bound = _vars[i].s_upper_bound;
-    }
-
-    // SAMPLER_TRACE(
-    //     tout << "before this " << _step << "\n";
-    //     tout << "last flip lit " << _last_flip_lia_lit << "\n";
-    //     tout << _vars[_name2var["x_1"]].var_name << " = " << print_128(_solution[_name2var["x_1"]]) << "\n";
-    //     for (int i = 0; i < _vars[_name2var["x_1"]].literal_coff.size(); ++i) {
-    //         tout << "in lit_" << _lits[_vars[_name2var["x_1"]].literals[i]].lits_index << ", coff = " << print_128(_vars[_name2var["x_1"]].literal_coff[i]) << "\n";
-    //     });
-
-    _vars = _bak_vars;
-
-    // SAMPLER_TRACE(
-    //     tout << "after this " << _step << "\n";
-    //     tout << "last flip lit " << _last_flip_lia_lit << "\n";
-    //     tout << _vars[_name2var["x_1"]].var_name << " = " << print_128(_solution[_name2var["x_1"]]) << "\n";
-    //     for (int i = 0; i < _vars[_name2var["x_1"]].literal_coff.size(); ++i) {
-    //         tout << "in lit_" << _lits[_vars[_name2var["x_1"]].literals[i]].lits_index << ", coff = " << print_128(_vars[_name2var["x_1"]].literal_coff[i]) << "\n";
-    //     });
-    _reconstruct_stack = _bak_reconstruct_stack;
     _num_vars = _vars.size();
 }
 
@@ -380,12 +356,10 @@ void ls_sampler::construct_solution_score() {
             continue;
         }
 
-        __int128_t random_val;
-        random_val = random_int64_in_range(s_lower_bound, s_upper_bound);
-        _solution[i] = random_val;
+        _solution[i] = random_int64_in_range(s_lower_bound, s_upper_bound);
+
         TRACE("sampling_init",
               tout << _vars[i].var_name << " = " << print_128(_solution[i]) << "\n";);
-        SASSERT(random_val >= s_lower_bound && random_val <= s_upper_bound);
     }
 }
 
@@ -1367,16 +1341,7 @@ void ls_sampler::ls_sampling() {
     std::cout << "start sampling ...\n";
 #endif
 
-    // for (int i = 0; i < _num_vars; ++i) {
-    //     std::cout << "var_name: " << _vars[i].var_name << "\n";
-    //     std::cout << "var_low_bound: " << print_128(_vars[i].low_bound) << "\n";
-    //     std::cout << "var_upper_bound: " << print_128(_vars[i].upper_bound) << "\n";
-    // }
-
-    _bak_vars = _vars;
     _num_vars = _vars.size();
-    _bak_reconstruct_stack = _reconstruct_stack;
-    _bak_name2var = _name2var;
 
     search();
 #ifdef DEBUG

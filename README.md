@@ -11,7 +11,7 @@ In LIA-Sampler, three sampling modes have been implemented, namely *LS-MODE*, *C
 ![alt text](pics/hybrid_mode.png)
 
 Here's an overview of the key components in the project structure:
-```bash
+```
 .
 ├── LIA-Sampler
 │   ├── LIA_bench
@@ -102,11 +102,11 @@ make
 
 Run a test case to see how LIA-Sampler works:
 ```bash
-./liasampler -i LIA_bench/LIA_convert_query-1164.smt2 -o samples -n 10 -t 900 -s 123 -m hybrid
+./liasampler -i LIA_bench/LIA_convert_query-1164.smt2 -o samples -n 10 -t 900 -s 123 -m hybrid -e 1 -p 0.8
 ```
 
 ## 4. Command Line Options
-```bash
+```
 Usage: ./liasampler [options]
 Options:
   -i <smt file>               Specify the path to the input file

@@ -27,9 +27,9 @@ class LiaSampler : public Sampler {
     void print_statistic();
    public:
 
-    LiaSampler(z3::context* _c, std::string _smtFilePath, std::string _samplesFileDir, size_t _maxNumSamples, double _maxTimeLimit, SamplingMode _mode, size_t _cdclEpoch, double _fixedVarsPct)
+    LiaSampler(z3::context* _c, std::string _smtFilePath, std::string _samplesFileDir, size_t _maxNumSamples, double _maxTimeLimit, SamplingMode _mode, unsigned seed, size_t _cdclEpoch, double _fixedVarsPct)
         : Sampler(_c, _smtFilePath, _samplesFileDir, _maxNumSamples, _maxTimeLimit), mode(_mode), cdcl_epoch(_cdclEpoch), fixed_var_pct(_fixedVarsPct){
-            mt.seed(rd());
+            mt.seed(seed);
     }
 
     z3::tactic mk_preamble_tactic(z3::context& ctx);
@@ -38,5 +38,6 @@ class LiaSampler : public Sampler {
     void ls_sampling(std::ofstream& samplesFile);
     void cdcl_sampling(std::ofstream& samplesFile);
     void hybrid_sampling(std::ofstream& samplesFile);
+    unsigned gen_random_seed();
 };
 };  // namespace sampler

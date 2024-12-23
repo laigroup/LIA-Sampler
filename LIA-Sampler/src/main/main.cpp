@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
     }
 
     z3::context ctx;
-    sampler::LiaSampler mySampler(&ctx, arg.smtFilePath, arg.outputDir, arg.maxNumSamples, arg.maxTimeLimit, arg.mode, arg.cdclEpoch, arg.fixedVarsPct);
+    sampler::LiaSampler mySampler(&ctx, arg.smtFilePath, arg.outputDir, arg.maxNumSamples, arg.maxTimeLimit, arg.mode, arg.randomSeed, arg.cdclEpoch, arg.fixedVarsPct);
 
     mySampler.sampling();
 
