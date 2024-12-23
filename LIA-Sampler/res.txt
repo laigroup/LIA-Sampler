@@ -1,0 +1,19 @@
+Stage1: generating partial samples from local search ...
+
+--------------------- After stage1: statistic ---------------------
+stage1 time: 0.00342684
+stage1 num samples: 113
+-------------------------------------------------------------------
+
+--------------------- After stage2: statistic ---------------------
+stage2 time: 0.00487861
+stage2 num samples: 887
+-------------------------------------------------------------------
+Search completed. Now starting the model generation and conversion ...
+after search time_limit = 790
+after check(): 2.74467
+
+after get_mode(): 10.7915
+---------------------After sampling: statistic---------------------
+sampling time: 10.7917
+total samples number: 1000

@@ -1,0 +1,135 @@
+covert (MEGA)
+---------SOLVING STATISTICS--------
+do_epoch time: 715.928
+epoch time: 863.947
+grow_seed time: 99.5451
+initial_solving time: 0.124111
+output time: 3.23023
+start_epoch time: 157.357
+total time: 900.079
+Epochs: 21
+MAX-SMT calls: 22
+SMT calls: 2
+Assignments considered (with repetitions): 207879
+Models (with repetitions): 207879
+Unique models (# samples in file): 207878
+-----------------------------------
+
+bofill_real (MEGA)
+---------SOLVING STATISTICS--------
+do_epoch time: 437.474
+epoch time: 899.743
+grow_seed time: 195.617
+initial_solving time: 0.637241
+output time: 0.06733
+start_epoch time: 462.269
+total time: 900.381
+Epochs: 574
+MAX-SMT calls: 575
+SMT calls: 2
+Assignments considered (with repetitions): 58548
+Models (with repetitions): 58548
+Unique models (# samples in file): 574
+-----------------------------------
+
+CAV_2009 (MEGA)
+---------SOLVING STATISTICS--------
+do_epoch time: 226.667
+epoch time: 899.42
+grow_seed time: 101.63
+initial_solving time: 0.148635
+output time: 1.00231
+start_epoch time: 673.041
+total time: 900.006
+Epochs: 35
+MAX-SMT calls: 36
+SMT calls: 12
+Assignments considered (with repetitions): 271220
+Models (with repetitions): 271220
+Unique models (# samples in file): 270449
+-----------------------------------
+
+CAV_2009 (MEGAb)
+---------SOLVING STATISTICS--------
+do_epoch time: 889.94
+epoch time: 899.725
+grow_seed time: 408.681
+initial_solving time: 0.148408
+output time: 2.80435
+start_epoch time: 9.91522
+total time: 900.004
+Epochs: 275
+MAX-SMT calls: 1
+SMT calls: 275
+Assignments considered (with repetitions): 1560927
+Models (with repetitions): 1560926
+Unique models (# samples in file): 1547708
+-----------------------------------
+
+dillig (MEGAb)
+---------SOLVING STATISTICS--------
+do_epoch time: 895.911
+epoch time: 899.33
+grow_seed time: 119.215
+initial_solving time: 0.01656
+output time: 5.68517
+start_epoch time: 3.42695
+total time: 900.009
+Epochs: 386
+MAX-SMT calls: 1
+SMT calls: 386
+Assignments considered (with repetitions): 3521650
+Models (with repetitions): 3521650
+Unique models (# samples in file): 3515895
+-----------------------------------
+
+pb2010 (MEGA)
+---------SOLVING STATISTICS--------
+do_epoch time: 370.077
+epoch time: 891.874
+grow_seed time: 147.827
+initial_solving time: 9.94395
+output time: 0.042625
+start_epoch time: 521.796
+total time: 901.818
+Epochs: 37
+MAX-SMT calls: 38
+SMT calls: 2
+Assignments considered (with repetitions): 3774
+Models (with repetitions): 3774
+Unique models (# samples in file): 8
+-----------------------------------
+
+prime-cone (MEGA)
+---------SOLVING STATISTICS--------
+do_epoch time: 863.662
+epoch time: 899.794
+grow_seed time: 147.707
+initial_solving time: 0.00196341
+output time: 7.94777
+start_epoch time: 36.151
+total time: 900.005
+Epochs: 1222
+MAX-SMT calls: 1223
+SMT calls: 0
+Assignments considered (with repetitions): 6462394
+Models (with repetitions): 6462394
+Unique models (# samples in file): 6458402
+-----------------------------------
+
+slacks (MEGA)
+---------SOLVING STATISTICS--------
+do_epoch time: 328.845
+epoch time: 896.759
+grow_seed time: 103.464
+initial_solving time: 0.296248
+output time: 1.66512
+start_epoch time: 568.989
+total time: 900.043
+Epochs: 35
+MAX-SMT calls: 36
+SMT calls: 6
+Assignments considered (with repetitions): 344344
+Models (with repetitions): 344344
+Unique models (# samples in file): 344339
+-----------------------------------
