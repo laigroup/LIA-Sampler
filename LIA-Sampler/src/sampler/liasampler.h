@@ -2,7 +2,8 @@
 
 #include <random>
 #include <string>
-#include <unordered_map>
+#include <map>
+#include <unordered_set>
 #include "sampler.h"
 
 namespace sampler {
@@ -13,13 +14,21 @@ typedef enum {
     HYBRID
 }SamplingMode;
 
+struct Hash {
+    std::size_t operator()(__int128_t x) const {
+        return static_cast<std::size_t>(x ^ (x >> 64));
+    }
+};
+
 class LiaSampler : public Sampler {
     std::chrono::steady_clock::time_point time_sampling_start;
     size_t num_samples = 0;
     SamplingMode mode = LS;
     std::mt19937 mt;
     std::random_device rd;
-    std::unordered_map<std::string, std::string> curr_sample;
+    std::map<std::string, std::string> curr_sample;
+    std::vector<__int128_t> curr_sample_val;
+    std::unordered_set<__int128_t, Hash> unique_samples_hash_set;
     size_t cdcl_epoch = 1;
     double fixed_var_pct = 0.5;
 
@@ -35,6 +44,7 @@ class LiaSampler : public Sampler {
     z3::tactic mk_preamble_tactic(z3::context& ctx);
 
     void sampling() override;
+    void print_unique_sample(std::ofstream& samplesFile);
     void ls_sampling(std::ofstream& samplesFile);
     void cdcl_sampling(std::ofstream& samplesFile);
     void hybrid_sampling(std::ofstream& samplesFile);

@@ -5,6 +5,18 @@
 
 namespace sampler {
 
+const __int128_t P = 2305843009213693951LL;  // 一个大质数作为模数
+const __int128_t BASE = 37;                  // 选择一个不常用的质数作为基数
+
+// 多项式哈希函数
+__int128_t polynomialHash(const std::vector<__int128_t>& data, __int128_t seed = 1) {
+    __int128_t hashValue = seed;
+    for (__int128_t num : data) {
+        hashValue = (hashValue * BASE + num) % P;  // 使用霍纳规则
+    }
+    return hashValue;
+}
+
 __int128_t string_to_int128(const std::string& str) {
     __int128_t result = 0;
     bool is_negative = false;
@@ -95,10 +107,16 @@ z3::tactic LiaSampler::mk_preamble_tactic(z3::context& ctx) {
     ctx_simp_p.set("max_steps", 5000000u);
 
     z3::params solver_eqs_p(ctx);
-    solver_eqs_p.set("solve_eqs_max_occs", 5U);
+    solver_eqs_p.set("solve_eqs_max_occs", 4U);
 
     z3::params lhs_p(ctx);
     lhs_p.set("arith_lhs", true);
+
+    z3::params main_p(ctx);
+    main_p.set("elim_and", true);
+    main_p.set("som", true);
+    main_p.set("blast_distinct", true);
+    main_p.set("blast_distinct_threshold", 128u);
 
     return z3::tactic(ctx, "simplify") &
            z3::tactic(ctx, "propagate-values") &
@@ -111,7 +129,7 @@ z3::tactic LiaSampler::mk_preamble_tactic(z3::context& ctx) {
 
 void LiaSampler::ls_sampling(std::ofstream& samplesFile) {
     std::cout << "-----------------------LS-SAMPLING MODE-----------------------\n";
-    z3::solver ls_solver = z3::tactic(c, "smt").mk_solver();
+    z3::solver ls_solver(c);
     ls_solver.set("sampling", true);
     ls_solver.set("input_file", smtFilePath.c_str());
     ls_solver.set("output_file", samplesFileDir.c_str());
@@ -129,7 +147,7 @@ void LiaSampler::ls_sampling(std::ofstream& samplesFile) {
         ls_solver.add(subgoal[i]);
     }
 
-    for (size_t i = 0; i < maxNumSamples; ++i) {
+    while (num_samples < maxNumSamples) {
         ls_solver.set("random_seed", gen_random_seed());
         z3::check_result check_res = ls_solver.check();
         if (z3::sat != check_res) {
@@ -138,17 +156,16 @@ void LiaSampler::ls_sampling(std::ofstream& samplesFile) {
         }
         z3::model m = ls_solver.get_model();
         m = subgoal.convert_model(m);
-        samplesFile << i << ": ";
+
         for (size_t j = 0; j < m.size(); ++j) {
             if (m[j].is_const()) {
-                samplesFile << m[j].name() << ":" << processNegNumber(m.get_const_interp(m[j]).to_string()) << ";";
+                curr_sample[m[j].name().str()] = processNegNumber(m.get_const_interp(m[j]).to_string());
+                // samplesFile << m[j].name().str() << ":" << processNegNumber(m.get_const_interp(m[j]).to_string()) << ";";
             }
         }
-        samplesFile << "\n";
-        num_samples++;
-#if defined(VERBOSE) && defined(PRINT_PROGRESS)
-        std::cout << "The " << i + 1 << " sample is being generated ..." << std::endl;
-#endif
+
+        print_unique_sample(samplesFile);
+
         if (TimeElapsed() > maxTimeLimit) {
             break;
         }
@@ -161,24 +178,25 @@ void LiaSampler::cdcl_sampling(std::ofstream& samplesFile) {
 
     cdcl_solver.add(original_formula);
 
-    for (size_t i = 0; i < maxNumSamples; ++i) {
+    while (num_samples < maxNumSamples) {
+        cdcl_solver.push();
         z3::check_result check_res = cdcl_solver.check();
         if (z3::sat != check_res) {
             std::cout << "Unsat or unknown case!\b";
             return;
         }
         z3::model m = cdcl_solver.get_model();
-        samplesFile << i << ": ";
         for (size_t j = 0; j < m.size(); ++j) {
             if (m[j].is_const()) {
-                samplesFile << m[j].name() << ":" << processNegNumber(m.get_const_interp(m[j]).to_string()) << ";";
+                curr_sample[m[j].name().str()] = processNegNumber(m.get_const_interp(m[j]).to_string());
+                // samplesFile << m[j].name() << ":" << processNegNumber(m.get_const_interp(m[j]).to_string()) << ";";
             }
         }
-        samplesFile << "\n";
-        num_samples++;
-#if defined(VERBOSE) && defined(PRINT_PROGRESS)
-        std::cout << "The " << i + 1 << " sample is being generated ..." << std::endl;
-#endif
+
+        print_unique_sample(samplesFile);
+
+        cdcl_solver.pop();
+
         if (TimeElapsed() > maxTimeLimit) {
             break;
         }
@@ -209,10 +227,8 @@ void LiaSampler::hybrid_sampling(std::ofstream& samplesFile) {
         ls_solver.add(subgoal[i]);
     }
 
-    size_t i = 0;
-
     bool is_pb = true;
-    while (i < maxNumSamples) {
+    while (num_samples < maxNumSamples) {
         // ls sampling
         ls_solver.set("random_seed", gen_random_seed());
         z3::check_result check_res = ls_solver.check();
@@ -223,24 +239,20 @@ void LiaSampler::hybrid_sampling(std::ofstream& samplesFile) {
         z3::model m_ls = ls_solver.get_model();
         m_ls = subgoal.convert_model(m_ls);
 
-        samplesFile << i << ": ";
         for (size_t j = 0; j < m_ls.size(); ++j) {
             if (m_ls[j].is_const()) {
                 std::string var_name = m_ls[j].name().str();
                 std::string var_value = processNegNumber(m_ls.get_const_interp(m_ls[j]).to_string());
                 curr_sample[var_name] = var_value;
-                samplesFile << var_name << ":" << var_value << ";";
+                // samplesFile << var_name << ":" << var_value << ";";
                 if (var_value != "0" && var_value != "1") {
                     is_pb = false;
                 }
             }
         }
-        samplesFile << "\n";
-        num_samples++;
-        i++;
-#if defined(VERBOSE) && defined(PRINT_PROGRESS)
-        std::cout << "The " << i << " sample from local search is being generated ..." << std::endl;
-#endif
+
+        print_unique_sample(samplesFile);
+
         if (TimeElapsed() > maxTimeLimit || num_samples >= maxNumSamples) {
             break;
         }
@@ -253,40 +265,59 @@ void LiaSampler::hybrid_sampling(std::ofstream& samplesFile) {
                 for (size_t j = 0; j < m_ls.size(); ++j) {
                     if (m_ls[j].is_const() && dist(mt) < fixed_var_pct) {
                         std::string var_name = m_ls[j].name().str();
-                        z3::expr val = c.int_val(curr_sample[var_name].c_str());
+                        std::string var_value = processNegNumber(m_ls.get_const_interp(m_ls[j]).to_string());
+                        z3::expr val = c.int_val(var_value.c_str());
                         z3::symbol var_symbol = c.str_symbol(var_name.c_str());
                         z3::expr var = c.constant(var_symbol, c.int_sort());
 
-                        z3::expr assertion = (var == val);
-                        assertions_vector.push_back(assertion);
+                        assertions_vector.push_back(var == val);
                     }
                 }
 
-                z3::expr additional_assertion = z3::mk_and(assertions_vector);
-                cdcl_solver.add(additional_assertion);
-                z3::check_result res = cdcl_solver.check();
-                z3::model cdcl_m = cdcl_solver.get_model();
+                z3::check_result res = cdcl_solver.check(assertions_vector);
                 if (z3::sat == res) {
-                    samplesFile << i << ": ";
+                    z3::model cdcl_m = cdcl_solver.get_model();
                     for (size_t j = 0; j < cdcl_m.size(); ++j) {
                         if (cdcl_m[j].is_const()) {
                             std::string var_name = cdcl_m[j].name().str();
                             std::string var_value = processNegNumber(cdcl_m.get_const_interp(cdcl_m[j]).to_string());
-                            // curr_sample[var_name] = var_value;
-                            samplesFile << var_name << ":" << var_value << ";";
+                            curr_sample[var_name] = var_value;
+                            // samplesFile << var_name << ":" << var_value << ";";
                         }
                     }
-                    samplesFile << "\n";
-                    num_samples++;
-                    i++;
-#if defined(VERBOSE) && defined(PRINT_PROGRESS)
-                    std::cout << "The " << i << " sample from CDCL(T) is being generated ..." << std::endl;
-#endif
+                    print_unique_sample(samplesFile);
+                } else {
+                    std::cout << "Unsat case from CDCL(T)!\n";
                 }
                 cdcl_solver.pop();
             }
         }
     }
+}
+
+void LiaSampler::print_unique_sample(std::ofstream& samplesFile) {
+    curr_sample_val.resize(curr_sample.size());
+    size_t val_idx = 0;
+    for (auto p : curr_sample) {
+        curr_sample_val[val_idx++] = string_to_int128(p.second);
+    }
+    __int128_t hash_val = polynomialHash(curr_sample_val);
+
+    if (unique_samples_hash_set.find(hash_val) == unique_samples_hash_set.end()) {
+        samplesFile << num_samples << ": ";
+        for (auto p : curr_sample) {
+            samplesFile << p.first << ":" << p.second << ";";
+        }
+        samplesFile << "\n";
+        num_samples ++;
+        unique_samples_hash_set.insert(hash_val);
+#if defined(VERBOSE) && defined(PRINT_PROGRESS)
+        std::cout << "The " << num_samples << " sample is being generated ..." << std::endl;
+#endif
+    }
+
+    curr_sample_val.clear();
+    curr_sample.clear();
 }
 
 unsigned LiaSampler::gen_random_seed() {

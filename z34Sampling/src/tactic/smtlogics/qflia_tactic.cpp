@@ -251,11 +251,13 @@ static tactic* mk_ring_tactic(ast_manager& m) {
 static tactic* mk_bounded_tactic(ast_manager& m) {
     return annotate_tactic(
         "bounded-tactic",
-        and_then(fail_if(mk_is_unbounded_probe()),
+        and_then(
+                 fail_if(mk_is_unbounded_probe()),
                  or_else(try_for(mk_no_cut_smt_tactic(m, 100), 5000),
                          try_for(mk_no_cut_no_relevancy_smt_tactic(m, 200), 5000),
                          try_for(mk_no_cut_smt_tactic(m, 300), 15000)),
-                 mk_fail_if_undecided_tactic()));
+                 mk_fail_if_undecided_tactic()
+                 ));
 }
 
 tactic* mk_preamble_tactic(ast_manager& m) {
@@ -326,17 +328,22 @@ tactic* mk_qflia_tactic(ast_manager& m, params_ref const& p) {
     //     main_p);
 
     tactic* st = using_params( // z3
-        and_then(
-            mk_preamble_tactic(m),
-            using_params(mk_simplify_tactic(m), lhs_p),
-            or_else(mk_ilp_model_finder_tactic(m),
-                    mk_pb_tactic(m),
-                    and_then(fail_if_not(mk_is_quasi_pb_probe()),
-                             using_params(mk_lia2sat_tactic(m), quasi_pb_p),
-                             mk_fail_if_undecided_tactic()),
-                    mk_bounded_tactic(m),
-                    mk_smt_tactic(m))),
+            or_else(mk_bounded_tactic(m),
+                    mk_smt_tactic(m)),
         main_p);
+
+    // tactic* st = using_params( // z3
+    //     and_then(
+    //         mk_preamble_tactic(m),
+    //         using_params(mk_simplify_tactic(m), lhs_p),
+    //         or_else(mk_ilp_model_finder_tactic(m),
+    //                 mk_pb_tactic(m),
+    //                 and_then(fail_if_not(mk_is_quasi_pb_probe()),
+    //                          using_params(mk_lia2sat_tactic(m), quasi_pb_p),
+    //                          mk_fail_if_undecided_tactic()),
+    //                 mk_bounded_tactic(m),
+    //                 mk_smt_tactic(m))),
+    //     main_p);
 
     // tactic* st;
     // if (first_sampling) {

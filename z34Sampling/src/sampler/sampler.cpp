@@ -1617,34 +1617,6 @@ void ls_sampler::choose_value_for_pair() {  // x - y = val
     }
 }
 
-// void ls_sampler::build_final_solution() {
-//     int new_var_pos;
-//     variable* original_var_x;
-//     variable* original_var_y;
-//     _final_solution = _solution;
-//     _solution_size = _num_vars;
-
-//     for (int pair_idx = 0; pair_idx < pair_x->size(); pair_idx++) {
-//         original_var_x = &(_tmp_vars[pair_x->element_at(pair_idx)]);
-//         new_var_pos = _name2var["_new_var_" + original_var_x->var_name];
-//         _final_solution[new_var_pos] = pair_x_value[pair_idx];
-
-//         // 还原变量名 new_var_x --> x
-//         _vars[new_var_pos].var_name = original_var_x->var_name;
-//         // TODO 还原其他信息
-//     }
-
-//     _solution_size += pair_x->size();
-//     _final_solution.resize(_solution_size);
-//     for (int i = _num_vars, pair_idx = 0; i < _solution_size; i++, pair_idx++) {
-//         original_var_y = &(_tmp_vars[pair_y->element_at(pair_idx)]);
-//         int var_idx = (int)transfer_name_to_reduced_var(original_var_y->var_name, true, false);
-//         SASSERT(var_idx == i);
-//         _final_solution[i] = pair_y_value[pair_idx];
-//     }
-//     // TODO 处理公式中原本存在的布尔变量
-// }
-
 bool ls_sampler::update_inner_best_solution() {
     if (_unsat_clauses->size() < _best_found_hard_cost_this_lia) {
         _best_found_hard_cost_this_lia = _unsat_clauses->size();
