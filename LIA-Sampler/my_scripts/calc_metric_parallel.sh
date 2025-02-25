@@ -10,7 +10,7 @@ SMT_DIR=$1
 SAMPLES_DIR="samples/$SMT_DIR"  # 在 samples 目录路径中附加 SMT_DIR
 PYTHON_SCRIPT="my_scripts/calc_metric.py"
 MODE="wire_coverage"
-OUTPUT_DIR="calc_res/$SMT_DIR"  # 在输出目录路径中附加 SMT_DIR
+OUTPUT_DIR="calc_result_2_21/$SMT_DIR"  # 在输出目录路径中附加 SMT_DIR
 CPU_CORES=$(nproc)
 
 # 创建输出目录，如果不存在的话

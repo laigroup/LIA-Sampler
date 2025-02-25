@@ -262,6 +262,7 @@ class ls_sampler {
         mt.seed(rd());
     }
     void make_space();
+    void free_space();
     void make_lits_space(uint64_t num_lits) {
         _num_lits = num_lits;
         _lits.resize(num_lits + _additional_len);

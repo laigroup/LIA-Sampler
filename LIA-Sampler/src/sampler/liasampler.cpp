@@ -1,4 +1,5 @@
 #include "liasampler.h"
+
 #include <filesystem>  // C++17 引入的库
 #include <fstream>
 #include <regex>
@@ -107,7 +108,7 @@ z3::tactic LiaSampler::mk_preamble_tactic(z3::context& ctx) {
     ctx_simp_p.set("max_steps", 5000000u);
 
     z3::params solver_eqs_p(ctx);
-    solver_eqs_p.set("solve_eqs_max_occs", 4U);
+    solver_eqs_p.set("solve_eqs_max_occs", 5U);
 
     z3::params lhs_p(ctx);
     lhs_p.set("arith_lhs", true);
@@ -117,23 +118,40 @@ z3::tactic LiaSampler::mk_preamble_tactic(z3::context& ctx) {
     main_p.set("som", true);
     main_p.set("blast_distinct", true);
     main_p.set("blast_distinct_threshold", 128u);
+    main_p.set("eq2ineq", true);
 
-    return z3::tactic(ctx, "simplify") &
-           z3::tactic(ctx, "propagate-values") &
-           z3::with(z3::tactic(ctx, "ctx-simplify"), ctx_simp_p) &
-           z3::with(z3::tactic(ctx, "simplify"), pull_ite_p) &
-           z3::with(z3::tactic(ctx, "solve-eqs"), solver_eqs_p) &
-           z3::tactic(ctx, "elim-uncnstr") &
-           z3::with(z3::tactic(ctx, "simplify"), lhs_p);
+    return z3::with(z3::tactic(ctx, "simplify") &
+                        z3::tactic(ctx, "propagate-values") &
+                        z3::with(z3::tactic(ctx, "ctx-simplify"), ctx_simp_p) &
+                        z3::with(z3::tactic(ctx, "simplify"), pull_ite_p) &
+                        z3::with(z3::tactic(ctx, "solve-eqs"), solver_eqs_p) &
+                        z3::tactic(ctx, "elim-uncnstr") &
+                        z3::with(z3::tactic(ctx, "simplify"), lhs_p),
+                    main_p);
 }
 
+void LiaSampler::ls_sampling_core(z3::solver ls_solver, z3::goal subgoal) {
+    ls_solver.set("random_seed", gen_random_seed());
+
+    z3::check_result check_res = ls_solver.check();
+    if (z3::sat != check_res) {
+        std::cout << "Unsat or unknown case!\n";
+        return;
+    }
+    z3::model m = ls_solver.get_model();
+    m = subgoal.convert_model(m);
+
+    for (size_t j = 0; j < m.size(); ++j) {
+        if (m[j].is_const()) {
+            curr_sample[m[j].name().str()] = processNegNumber(m.get_const_interp(m[j]).to_string());
+            // samplesFile << m[j].name().str() << ":" << processNegNumber(m.get_const_interp(m[j]).to_string()) << ";";
+        }
+    }
+}
+
+#ifdef LS_MODE
 void LiaSampler::ls_sampling(std::ofstream& samplesFile) {
     std::cout << "-----------------------LS-SAMPLING MODE-----------------------\n";
-    z3::solver ls_solver(c);
-    ls_solver.set("sampling", true);
-    ls_solver.set("input_file", smtFilePath.c_str());
-    ls_solver.set("output_file", samplesFileDir.c_str());
-    // ls_solver.set("seed", seed);
 
     z3::goal g(c);
     g.add(original_formula);
@@ -143,42 +161,41 @@ void LiaSampler::ls_sampling(std::ofstream& samplesFile) {
     assert(simp_ar.size() == 1);
     z3::goal subgoal = simp_ar[0];
 
+    // z3::solver ls_solver(c);
+
+    z3::solver ls_solver = (preamble_tactic & z3::tactic(c, "smt")).mk_solver();
+    ls_solver.set("logic", "QF_LIA");
+    ls_solver.set("sampling", true);
+    ls_solver.set("input_file", smtFilePath.c_str());
+    ls_solver.set("output_file", samplesFileDir.c_str());
+
     for (unsigned i = 0; i < subgoal.size(); i++) {
         ls_solver.add(subgoal[i]);
     }
 
     while (num_samples < maxNumSamples) {
-        ls_solver.set("random_seed", gen_random_seed());
-        z3::check_result check_res = ls_solver.check();
-        if (z3::sat != check_res) {
-            std::cout << "Unsat or unknown case!\n";
-            return;
-        }
-        z3::model m = ls_solver.get_model();
-        m = subgoal.convert_model(m);
-
-        for (size_t j = 0; j < m.size(); ++j) {
-            if (m[j].is_const()) {
-                curr_sample[m[j].name().str()] = processNegNumber(m.get_const_interp(m[j]).to_string());
-                // samplesFile << m[j].name().str() << ":" << processNegNumber(m.get_const_interp(m[j]).to_string()) << ";";
-            }
-        }
+        ls_sampling_core(ls_solver, subgoal);
 
         print_unique_sample(samplesFile);
 
         if (TimeElapsed() > maxTimeLimit) {
             break;
         }
+#ifdef VERBOSE
+        std::cout << " ============================== \n";
+#endif
     }
 }
+#endif
 
+#ifdef CDCL_MODE
 void LiaSampler::cdcl_sampling(std::ofstream& samplesFile) {
     std::cout << "-----------------------CDCL-SAMPLING MODE-----------------------\n";
-    z3::solver cdcl_solver(c);
-
-    cdcl_solver.add(original_formula);
 
     while (num_samples < maxNumSamples) {
+        z3::solver cdcl_solver(c);
+
+        cdcl_solver.add(original_formula);
         cdcl_solver.push();
         z3::check_result check_res = cdcl_solver.check();
         if (z3::sat != check_res) {
@@ -202,18 +219,13 @@ void LiaSampler::cdcl_sampling(std::ofstream& samplesFile) {
         }
     }
 }
+#endif
 
+#ifdef HYBRID_MODE
 void LiaSampler::hybrid_sampling(std::ofstream& samplesFile) {
     std::cout << "-----------------------HYBRID-SAMPLING MODE-----------------------\n";
-    z3::solver ls_solver(c);
-    z3::solver cdcl_solver(c);
+
     std::uniform_real_distribution<double> dist(0.0, 1.0);
-
-    cdcl_solver.add(original_formula);
-
-    ls_solver.set("sampling", true);
-    ls_solver.set("input_file", smtFilePath.c_str());
-    ls_solver.set("output_file", samplesFileDir.c_str());
 
     z3::goal g(c);
     g.add(original_formula);
@@ -222,6 +234,14 @@ void LiaSampler::hybrid_sampling(std::ofstream& samplesFile) {
 
     assert(simp_ar.size() == 1);
     z3::goal subgoal = simp_ar[0];
+
+    z3::solver ls_solver = (preamble_tactic & z3::tactic(c, "smt")).mk_solver();
+    ls_solver.set("sampling", true);
+    ls_solver.set("input_file", smtFilePath.c_str());
+    ls_solver.set("output_file", samplesFileDir.c_str());
+
+    z3::solver cdcl_solver(c);
+    cdcl_solver.add(original_formula);
 
     for (unsigned i = 0; i < subgoal.size(); i++) {
         ls_solver.add(subgoal[i]);
@@ -294,6 +314,7 @@ void LiaSampler::hybrid_sampling(std::ofstream& samplesFile) {
         }
     }
 }
+#endif
 
 void LiaSampler::print_unique_sample(std::ofstream& samplesFile) {
     curr_sample_val.resize(curr_sample.size());
@@ -309,12 +330,17 @@ void LiaSampler::print_unique_sample(std::ofstream& samplesFile) {
             samplesFile << p.first << ":" << p.second << ";";
         }
         samplesFile << "\n";
-        num_samples ++;
+        num_samples++;
         unique_samples_hash_set.insert(hash_val);
 #if defined(VERBOSE) && defined(PRINT_PROGRESS)
         std::cout << "The " << num_samples << " sample is being generated ..." << std::endl;
 #endif
     }
+#if defined(DEBUG)
+    else {
+        std::cout << "duplicate samples\n";
+    }
+#endif
 
     curr_sample_val.clear();
     curr_sample.clear();
@@ -338,16 +364,20 @@ void LiaSampler::sampling() {
     }
 
     if (mode == LS) {
+#ifdef LS_MODE
         ls_sampling(samplesFile);
+#endif
     } else if (mode == CDCL) {
+#ifdef CDCL_MODE
         cdcl_sampling(samplesFile);
+#endif
     } else {
+#ifdef HYBRID_MODE
         hybrid_sampling(samplesFile);
+#endif
     }
 
     samplesFile.close();
-
-    // ls_solver.add(simp_formula);
 
     print_statistic();
 }

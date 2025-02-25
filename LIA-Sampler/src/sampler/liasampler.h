@@ -1,10 +1,15 @@
 #pragma once
 
+#include <map>
 #include <random>
 #include <string>
-#include <map>
 #include <unordered_set>
 #include "sampler.h"
+
+#define LS_MODE
+#define CDCL_MODE
+#define HYBRID_MODE
+#define DEBUG
 
 namespace sampler {
 
@@ -12,7 +17,7 @@ typedef enum {
     LS,
     CDCL,
     HYBRID
-}SamplingMode;
+} SamplingMode;
 
 struct Hash {
     std::size_t operator()(__int128_t x) const {
@@ -34,12 +39,13 @@ class LiaSampler : public Sampler {
 
     double TimeElapsed();
     void print_statistic();
-   public:
 
+   public:
     LiaSampler(z3::context* _c, std::string _smtFilePath, std::string _samplesFileDir, size_t _maxNumSamples, double _maxTimeLimit, SamplingMode _mode, unsigned seed, size_t _cdclEpoch, double _fixedVarsPct)
-        : Sampler(_c, _smtFilePath, _samplesFileDir, _maxNumSamples, _maxTimeLimit), mode(_mode), cdcl_epoch(_cdclEpoch), fixed_var_pct(_fixedVarsPct){
-            mt.seed(seed);
+        : Sampler(_c, _smtFilePath, _samplesFileDir, _maxNumSamples, _maxTimeLimit), mode(_mode), cdcl_epoch(_cdclEpoch), fixed_var_pct(_fixedVarsPct) {
+        mt.seed(seed);
     }
+
 
     z3::tactic mk_preamble_tactic(z3::context& ctx);
 
@@ -49,5 +55,6 @@ class LiaSampler : public Sampler {
     void cdcl_sampling(std::ofstream& samplesFile);
     void hybrid_sampling(std::ofstream& samplesFile);
     unsigned gen_random_seed();
+    void ls_sampling_core(z3::solver ls_solver, z3::goal subgoal);
 };
 };  // namespace sampler

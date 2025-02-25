@@ -297,20 +297,16 @@ tactic* mk_qflia_tactic(ast_manager& m, params_ref const& p) {
     params_ref lhs_p;
     lhs_p.set_bool("arith_lhs", true);
 
-    /* my change */
-    params_ref eq_simp_p;
-    eq_simp_p.set_bool("eq2ineq", true);
+    // tactic* use_ls_tactic =
+    //     // cond(mk_or(
+    //     //     mk_ge(mk_num_bool_consts_probe(),mk_const_probe(static_cast<double>(10))),mk_has_ite_probe()),
+    //     cond(mk_has_ite_probe(),
+    //          mk_smt_tactic(m),
+    //          or_else(
+    //              mk_ls_smt_tactic(m, 1, 50),
+    //              mk_smt_tactic(m)));
 
-    tactic* use_ls_tactic =
-        // cond(mk_or(
-        //     mk_ge(mk_num_bool_consts_probe(),mk_const_probe(static_cast<double>(10))),mk_has_ite_probe()),
-        cond(mk_has_ite_probe(),
-             mk_smt_tactic(m),
-             or_else(
-                 mk_ls_smt_tactic(m, 1, 50),
-                 mk_smt_tactic(m)));
-
-    tactic* sampling_tactic = mk_sampling_smt_tactic(m, 100, 1, "", "", 100, 900);
+    // tactic* sampling_tactic = mk_sampling_smt_tactic(m, 100, 1, "", "", 100, 900);
 
     // tactic* st = using_params(  // z3++
     //     and_then(
@@ -328,8 +324,10 @@ tactic* mk_qflia_tactic(ast_manager& m, params_ref const& p) {
     //     main_p);
 
     tactic* st = using_params( // z3
-            or_else(mk_bounded_tactic(m),
-                    mk_smt_tactic(m)),
+            or_else(
+                // mk_pb_tactic(m),
+                mk_bounded_tactic(m),
+                mk_smt_tactic(m)),
         main_p);
 
     // tactic* st = using_params( // z3

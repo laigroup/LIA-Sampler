@@ -5,7 +5,7 @@
 #include <iostream>
 #include <unordered_set>
 
-#define VERBOSE
+// #define VERBOSE
 #define PRINT_PROGRESS
 // #define SHOW_PROGRESS_BAR
 

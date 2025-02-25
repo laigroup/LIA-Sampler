@@ -90,3 +90,8 @@ QF_LIA
 
 # python 环境
 venv/
+
+# 数据文件
+csv_dir/
+calc_result_2_21/
+*.xlsx

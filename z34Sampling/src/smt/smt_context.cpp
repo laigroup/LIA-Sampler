@@ -186,6 +186,10 @@ void context::copy(context& src_ctx, context& dst_ctx, bool override_base) {
 context::~context() {
     flush();
     m_asserted_formulas.finalize();
+
+    // delete m_lia_ls_solver;
+    // delete m_nra_ls_solver;
+    // delete m_ls_sampler;
 }
 
 void context::copy_plugins(context& src, context& dst) {
@@ -3348,6 +3352,7 @@ bool context::check_preamble(bool reset_cancel) {
    \brief Execute some finalization code after performing the search.
 */
 lbool context::check_finalize(lbool r) {
+    // std::cout << "before check final r = " << r << "\n";
     TRACE("after_search", display(tout << "result: " << r << "\n");
           m_case_split_queue->display(tout << "case splits\n"););
     display_profile(verbose_stream());
@@ -3430,6 +3435,7 @@ lbool context::check_finalize(lbool r) {
             }
 #endif
     }
+    // std::cout << "after check final r = " << r << "\n";
     return r;
 }
 
@@ -3466,6 +3472,7 @@ lbool context::setup_and_check(bool reset_cancel) {
             try{
                 m_model_generator->reset();
                 m_proto_model = m_model_generator->mk_model_sampling(m_ls_sampler);
+                // m_ls_sampler->free_space();
             }catch(default_exception& ex){
                 return check_finalize(l_undef);
             }

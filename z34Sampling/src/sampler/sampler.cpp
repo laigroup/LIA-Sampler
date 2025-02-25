@@ -243,6 +243,15 @@ void ls_sampler::build_lits(std::string& in_string) {
     }  // boolean lit (equal_new_var)
 }
 
+void ls_sampler::free_space(){
+    delete _unsat_clauses;
+    delete _lit_occur;
+    delete _sat_clause_with_false_literal;
+    delete _contain_bool_unsat_clauses;
+    delete pair_x;
+    delete pair_y;
+}
+
 void ls_sampler::make_space() {
     _solution.resize(_num_vars + _additional_len);
     _best_solutin.resize(_num_vars + _additional_len);

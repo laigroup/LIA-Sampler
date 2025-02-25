@@ -13,12 +13,12 @@ def run_benchmark_script(base_path):
             # 构建相对路径
             relative_path = os.path.relpath(root, start=base_path)
             # 目标目录
-            target_dir = f"samples/{base_path}/{relative_path}"
+            target_dir = f"samples/{base_path}_900seconds/{relative_path}"
             # 确保目标目录存在
             os.makedirs(target_dir, exist_ok=True)
 
             # 构建命令
-            command = f"my_scripts/run_benchmarks.sh 1000 {base_path}/{relative_path} {target_dir}"
+            command = f"my_scripts/run_benchmarks.sh 25000000 {base_path}/{relative_path} {target_dir}"
 
             # 执行命令
             print(f"Executing command: {command}")  # 打印将要执行的命令
@@ -30,6 +30,6 @@ def run_benchmark_script(base_path):
 
 if __name__ == "__main__":
     # 定义要遍历的基础路径（这里假设是相对于当前脚本工作目录的相对路径）
-    base_directory = "LIA_bench"
+    base_directory = "QF_LIA"
     # 调用函数
     run_benchmark_script(base_directory)

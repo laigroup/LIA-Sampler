@@ -24,5 +24,5 @@ def execute_command_on_leaf_dirs(root_dir):
 
 
 if __name__ == "__main__":
-    root_directory = "LIA_bench"  # 请将此处替换为您的根目录路径
+    root_directory = "QF_LIA"  # 请将此处替换为您的根目录路径
     execute_command_on_leaf_dirs(root_directory)
